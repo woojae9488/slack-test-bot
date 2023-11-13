@@ -1,2 +1,2 @@
 # slack-test-bot
-Slack welcome bot with golang
+Slack test bot with golang
