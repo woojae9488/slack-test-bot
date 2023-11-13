@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/woojae9488/slack-welcome-bot/handler"
+	"github.com/woojae9488/slack-test-bot/handler"
 )
 
 var (

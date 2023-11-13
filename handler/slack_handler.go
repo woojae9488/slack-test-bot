@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/slack-go/slack/slackevents"
-	"github.com/woojae9488/slack-welcome-bot/service"
+	"github.com/woojae9488/slack-test-bot/service"
 )
 
 func SlackEvents(c *fiber.Ctx) error {

@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
-	"github.com/woojae9488/slack-welcome-bot/slackextension"
+	"github.com/woojae9488/slack-test-bot/slackextension"
 )
 
 var (
