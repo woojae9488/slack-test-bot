@@ -1,28 +1,24 @@
 package main
 
 import (
-	"flag"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/woojae9488/slack-test-bot/config"
 	"github.com/woojae9488/slack-test-bot/handler"
 )
 
 var (
-	port    = flag.String("port", ":8010", "Port to listen on")
-	profile = flag.String("profile", "local", "Enable prefork on real profile")
+	slackHandler *handler.SlackHandler = &handler.SlackHandler{}
+	errorHandler *handler.ErrorHandler = &handler.ErrorHandler{}
 )
 
 func main() {
-	// Parse command-line flags
-	flag.Parse()
-
 	// Create fiber app
 	app := fiber.New(fiber.Config{
 		AppName: "Slack Test Bot",
-		Prefork: *profile == "real",
+		Prefork: config.Server.IsRealPhase(),
 	})
 
 	// Middleware
@@ -32,11 +28,11 @@ func main() {
 	// Create a /api/slack endpoint
 	slakApi := app.Group("/api/slack")
 	// Bind slack api handlers
-	slakApi.Post("/events", handler.SlackEvents)
+	slakApi.Post("/events", slackHandler.AcceptEvents)
 
 	// Handle not founds
-	app.Use(handler.NotFound)
+	app.Use(errorHandler.NotFound)
 
 	// Listen on port 8010
-	log.Fatal(app.Listen(*port))
+	log.Fatal(app.Listen(config.Server.Port))
 }

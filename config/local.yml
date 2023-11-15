@@ -1,0 +1,5 @@
+app:
+  slack:
+    token: {TOKEN}
+    signing-secret: {SIGNING_SECRET}
+    feedback-channel: {FEEDBACK_CHANNEL}

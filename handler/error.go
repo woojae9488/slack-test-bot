@@ -4,7 +4,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+type ErrorHandler struct{}
+
 // NotFound returns 404 response
-func NotFound(c *fiber.Ctx) error {
+func (handler *ErrorHandler) NotFound(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusNotFound).SendString("Not Found")
 }

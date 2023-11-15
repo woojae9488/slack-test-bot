@@ -1,4 +1,4 @@
-package slackextension
+package slack
 
 import (
 	"github.com/slack-go/slack/slackevents"
