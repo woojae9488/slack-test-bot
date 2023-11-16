@@ -19,6 +19,11 @@ const (
 	SlackConfigPrefix string = AppConfigPrefix + ".slack"
 )
 
+type Config struct {
+	Server ServerConfig
+	Slack  SlackConfig
+}
+
 type ServerConfig struct {
 	Port  string
 	Phase ServerPhase
@@ -30,28 +35,36 @@ type SlackConfig struct {
 	FeedbackChannel string `mapstructure:"feedback-channel"`
 }
 
-var (
-	Server ServerConfig
-	Slack  SlackConfig
-)
-
-func (server *ServerConfig) IsRealPhase() bool {
-	return server.Phase == ServerRealPhase
+func NewConfig(server ServerConfig, slack SlackConfig) Config {
+	return Config{
+		Server: server,
+		Slack:  slack,
+	}
 }
 
-func init() {
-	// Parse command-line flags
+func (s *ServerConfig) IsRealPhase() bool {
+	return s.Phase == ServerRealPhase
+}
+
+func NewServerConfig() ServerConfig {
 	pflag.String("port", ServerDefaultPort, "Port to listen on")
 	pflag.String("phase", string(ServerDefaultPhase), "Enable prefork on real phase")
 	pflag.Parse()
 	validate(viper.BindPFlags(pflag.CommandLine))
-	validate(viper.Unmarshal(&Server))
 
-	// Parse yaml properties
+	s := ServerConfig{}
+	validate(viper.Unmarshal(&s))
+	return s
+}
+
+func NewSlackConfig(server ServerConfig) SlackConfig {
 	viper.AddConfigPath(AppConfigDir)
-	viper.SetConfigName(string(Server.Phase))
+	viper.SetConfigName(string(server.Phase))
 	validate(viper.ReadInConfig())
-	validate(viper.Sub(SlackConfigPrefix).Unmarshal(&Slack))
+
+	s := SlackConfig{}
+	validate(viper.Sub(SlackConfigPrefix).Unmarshal(&s))
+	return s
 }
 
 func validate(err error) {

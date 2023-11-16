@@ -9,16 +9,26 @@ import (
 	"github.com/woojae9488/slack-test-bot/handler"
 )
 
-var (
-	slackHandler *handler.SlackHandler = &handler.SlackHandler{}
-	errorHandler *handler.ErrorHandler = &handler.ErrorHandler{}
-)
+type App struct {
+	config config.Config
+	slackH handler.SlackHandler
+	errorH handler.ErrorHandler
+}
+
+func NewApp(slackH handler.SlackHandler, errorH handler.ErrorHandler) App {
+	return App{
+		slackH: slackH,
+		errorH: errorH,
+	}
+}
 
 func main() {
+	a := initializeApp()
+
 	// Create fiber app
 	app := fiber.New(fiber.Config{
 		AppName: "Slack Test Bot",
-		Prefork: config.Server.IsRealPhase(),
+		Prefork: a.config.Server.IsRealPhase(),
 	})
 
 	// Middleware
@@ -28,11 +38,11 @@ func main() {
 	// Create a /api/slack endpoint
 	slakApi := app.Group("/api/slack")
 	// Bind slack api handlers
-	slakApi.Post("/events", slackHandler.AcceptEvents)
+	slakApi.Post("/events", a.slackH.AcceptEvents)
 
 	// Handle not founds
-	app.Use(errorHandler.NotFound)
+	app.Use(a.errorH.NotFound)
 
 	// Listen on port 8010
-	log.Fatal(app.Listen(config.Server.Port))
+	log.Fatal(app.Listen(a.config.Server.Port))
 }
