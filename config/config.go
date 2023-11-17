@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/woojae9488/slack-test-bot/util"
 )
 
 type ServerPhase string
@@ -30,32 +31,27 @@ type SlackConfig struct {
 	FeedbackChannel string `mapstructure:"feedback-channel"`
 }
 
-var (
-	Server ServerConfig
-	Slack  SlackConfig
-)
-
-func (server *ServerConfig) IsRealPhase() bool {
-	return server.Phase == ServerRealPhase
+func (s *ServerConfig) IsRealPhase() bool {
+	return s.Phase == ServerRealPhase
 }
 
-func init() {
-	// Parse command-line flags
+func NewServerConfig() *ServerConfig {
 	pflag.String("port", ServerDefaultPort, "Port to listen on")
 	pflag.String("phase", string(ServerDefaultPhase), "Enable prefork on real phase")
 	pflag.Parse()
-	validate(viper.BindPFlags(pflag.CommandLine))
-	validate(viper.Unmarshal(&Server))
+	util.Validate(viper.BindPFlags(pflag.CommandLine))
 
-	// Parse yaml properties
-	viper.AddConfigPath(AppConfigDir)
-	viper.SetConfigName(string(Server.Phase))
-	validate(viper.ReadInConfig())
-	validate(viper.Sub(SlackConfigPrefix).Unmarshal(&Slack))
+	s := ServerConfig{}
+	util.Validate(viper.Unmarshal(&s))
+	return &s
 }
 
-func validate(err error) {
-	if err != nil {
-		panic(err)
-	}
+func NewSlackConfig(server *ServerConfig) *SlackConfig {
+	viper.AddConfigPath(AppConfigDir)
+	viper.SetConfigName(string(server.Phase))
+	util.Validate(viper.ReadInConfig())
+
+	s := SlackConfig{}
+	util.Validate(viper.Sub(SlackConfigPrefix).Unmarshal(&s))
+	return &s
 }

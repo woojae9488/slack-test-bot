@@ -6,7 +6,11 @@ import (
 
 type ErrorHandler struct{}
 
+func NewErrorHandler() *ErrorHandler {
+	return &ErrorHandler{}
+}
+
 // NotFound returns 404 response
-func (handler *ErrorHandler) NotFound(c *fiber.Ctx) error {
+func (h *ErrorHandler) NotFound(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusNotFound).SendString("Not Found")
 }
