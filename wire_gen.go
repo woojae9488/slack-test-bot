@@ -14,13 +14,14 @@ import (
 
 // Injectors from wire.go:
 
-func initializeApp() App {
+func initializeServer() *Server {
 	serverConfig := config.NewServerConfig()
+	app := NewFiberApp(serverConfig)
 	slackConfig := config.NewSlackConfig(serverConfig)
-	configConfig := config.NewConfig(serverConfig, slackConfig)
-	eventService := slack.NewEventService(configConfig)
+	client := slack.NewSlackClient(slackConfig)
+	eventService := slack.NewEventService(client, slackConfig)
 	slackHandler := handler.NewSlackHandler(eventService)
 	errorHandler := handler.NewErrorHandler()
-	app := NewApp(slackHandler, errorHandler)
-	return app
+	server := NewServer(app, serverConfig, slackHandler, errorHandler)
+	return server
 }

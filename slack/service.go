@@ -13,16 +13,16 @@ import (
 )
 
 type EventService struct {
-	client          slack.Client
+	client          *slack.Client
 	signingSecret   string
 	feedbackChannel string
 }
 
-func NewEventService(config config.Config) EventService {
-	return EventService{
-		client:          *slack.New(config.Slack.Token),
-		signingSecret:   config.Slack.SigningSecret,
-		feedbackChannel: config.Slack.FeedbackChannel,
+func NewEventService(client *slack.Client, config *config.SlackConfig) *EventService {
+	return &EventService{
+		client:          client,
+		signingSecret:   config.SigningSecret,
+		feedbackChannel: config.FeedbackChannel,
 	}
 }
 

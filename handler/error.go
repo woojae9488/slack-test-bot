@@ -6,8 +6,8 @@ import (
 
 type ErrorHandler struct{}
 
-func NewErrorHandler() ErrorHandler {
-	return ErrorHandler{}
+func NewErrorHandler() *ErrorHandler {
+	return &ErrorHandler{}
 }
 
 // NotFound returns 404 response

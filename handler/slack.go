@@ -9,11 +9,11 @@ import (
 )
 
 type SlackHandler struct {
-	eventService slack.EventService
+	eventService *slack.EventService
 }
 
-func NewSlackHandler(eventService slack.EventService) SlackHandler {
-	return SlackHandler{eventService: eventService}
+func NewSlackHandler(eventService *slack.EventService) *SlackHandler {
+	return &SlackHandler{eventService: eventService}
 }
 
 func (h *SlackHandler) AcceptEvents(c *fiber.Ctx) error {

@@ -10,15 +10,16 @@ import (
 	"github.com/woojae9488/slack-test-bot/slack"
 )
 
-func initializeApp() App {
+func initializeServer() *Server {
 	wire.Build(
 		config.NewServerConfig,
 		config.NewSlackConfig,
-		config.NewConfig,
+		slack.NewSlackClient,
 		slack.NewEventService,
 		handler.NewSlackHandler,
 		handler.NewErrorHandler,
-		NewApp,
+		NewFiberApp,
+		NewServer,
 	)
-	return App{}
+	return &Server{}
 }

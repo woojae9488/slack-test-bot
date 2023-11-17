@@ -9,40 +9,58 @@ import (
 	"github.com/woojae9488/slack-test-bot/handler"
 )
 
-type App struct {
-	config config.Config
-	slackH handler.SlackHandler
-	errorH handler.ErrorHandler
+type Server struct {
+	app          *fiber.App
+	config       *config.ServerConfig
+	slackHandler *handler.SlackHandler
+	errorHandler *handler.ErrorHandler
 }
 
-func NewApp(slackH handler.SlackHandler, errorH handler.ErrorHandler) App {
-	return App{
-		slackH: slackH,
-		errorH: errorH,
+func NewServer(
+	app *fiber.App,
+	config *config.ServerConfig,
+	slackHandler *handler.SlackHandler,
+	errorHandler *handler.ErrorHandler,
+) *Server {
+	return &Server{
+		app:          app,
+		config:       config,
+		slackHandler: slackHandler,
+		errorHandler: errorHandler,
 	}
 }
 
-func main() {
-	a := initializeApp()
-
-	// Create fiber app
-	app := fiber.New(fiber.Config{
+func NewFiberApp(config *config.ServerConfig) *fiber.App {
+	return fiber.New(fiber.Config{
 		AppName: "Slack Test Bot",
-		Prefork: a.config.Server.IsRealPhase(),
+		Prefork: config.IsRealPhase(),
 	})
+}
 
+func (s *Server) setupMiddlewares() {
 	// Middleware
-	app.Use(recover.New())
-	app.Use(logger.New())
+	s.app.Use(recover.New())
+	s.app.Use(logger.New())
+}
 
+func (s *Server) setupHandlers() {
 	// Create a /api/slack endpoint
-	slakApi := app.Group("/api/slack")
+	slakApi := s.app.Group("/api/slack")
 	// Bind slack api handlers
-	slakApi.Post("/events", a.slackH.AcceptEvents)
+	slakApi.Post("/events", s.slackHandler.AcceptEvents)
 
 	// Handle not founds
-	app.Use(a.errorH.NotFound)
+	s.app.Use(s.errorHandler.NotFound)
+}
 
-	// Listen on port 8010
-	log.Fatal(app.Listen(a.config.Server.Port))
+func (s *Server) startListen() {
+	// Listen on port
+	log.Fatal(s.app.Listen(s.config.Port))
+}
+
+func main() {
+	s := initializeServer()
+	s.setupMiddlewares()
+	s.setupHandlers()
+	s.startListen()
 }
