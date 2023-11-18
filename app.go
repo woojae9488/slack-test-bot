@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/woojae9488/slack-test-bot/config"
 	"github.com/woojae9488/slack-test-bot/handler"
@@ -41,6 +42,7 @@ func (s *Server) setupMiddlewares() {
 	// Middleware
 	s.app.Use(recover.New())
 	s.app.Use(logger.New())
+	s.app.Get("/metrics", monitor.New())
 }
 
 func (s *Server) setupHandlers() {
