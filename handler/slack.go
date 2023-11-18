@@ -16,7 +16,7 @@ func NewSlackHandler(eventService *slack.EventService) *SlackHandler {
 	return &SlackHandler{eventService: eventService}
 }
 
-func (h *SlackHandler) AcceptEvents(c *fiber.Ctx) error {
+func (h *SlackHandler) AcceptEvent(c *fiber.Ctx) error {
 	header := http.Header(c.GetReqHeaders())
 	body := c.Body()
 
@@ -29,13 +29,14 @@ func (h *SlackHandler) AcceptEvents(c *fiber.Ctx) error {
 		return err
 	}
 
-	if eventsAPIEvent.Type == slackevents.URLVerification {
+	switch eventsAPIEvent.Type {
+	case slackevents.URLVerification:
 		challenge, err := h.eventService.RetrieveEventChallenge(body)
 		if err != nil {
 			return err
 		}
 		return c.Type(fiber.MIMETextPlain).Send([]byte(challenge))
-	} else if eventsAPIEvent.Type == slackevents.CallbackEvent {
+	case slackevents.CallbackEvent:
 		if err := h.eventService.FeedbackCallbackEvent(eventsAPIEvent.InnerEvent); err != nil {
 			return err
 		}

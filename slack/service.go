@@ -2,6 +2,7 @@ package slack
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -29,13 +30,13 @@ func NewEventService(client *slack.Client, config *config.SlackConfig) *EventSer
 func (s *EventService) VerifySecret(reqHeader http.Header, reqBody []byte) error {
 	secretsVerifier, err := slack.NewSecretsVerifier(reqHeader, s.signingSecret)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Failed to make slack secrets verifier")
+		return errors.Join(fiber.NewError(fiber.StatusBadRequest, "Http headers or signging secret is invalid"), err)
 	}
 	if _, err := secretsVerifier.Write(reqBody); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to verify slack secrets")
+		return errors.Join(fiber.NewError(fiber.StatusInternalServerError, "Failed to write verifier hmac"), err)
 	}
 	if err := secretsVerifier.Ensure(); err != nil {
-		return fiber.NewError(fiber.StatusUnauthorized, "Failed to ensure slack secrets")
+		return errors.Join(fiber.NewError(fiber.StatusUnauthorized, "Failed to ensure secret hmac"), err)
 	}
 	return nil
 }
@@ -43,7 +44,8 @@ func (s *EventService) VerifySecret(reqHeader http.Header, reqBody []byte) error
 func (s *EventService) ParseEvent(reqBody []byte) (*slackevents.EventsAPIEvent, error) {
 	eventsAPIEvent, err := slackevents.ParseEvent(json.RawMessage(reqBody), slackevents.OptionNoVerifyToken())
 	if err != nil {
-		return &eventsAPIEvent, fiber.NewError(fiber.StatusInternalServerError, "Failed to parse slack event")
+		return &eventsAPIEvent,
+			errors.Join(fiber.NewError(fiber.StatusInternalServerError, "Failed to parse event"), err)
 	}
 	return &eventsAPIEvent, nil
 }
@@ -51,7 +53,8 @@ func (s *EventService) ParseEvent(reqBody []byte) (*slackevents.EventsAPIEvent, 
 func (s *EventService) RetrieveEventChallenge(reqBody []byte) (string, error) {
 	var challengeResponse *slackevents.ChallengeResponse
 	if err := json.Unmarshal(reqBody, &challengeResponse); err != nil {
-		return "", fiber.NewError(fiber.StatusInternalServerError, "Failed to unmarshal slack challenge")
+		return "",
+			errors.Join(fiber.NewError(fiber.StatusInternalServerError, "Failed to retrieve event challenge"), err)
 	}
 	return challengeResponse.Challenge, nil
 }
@@ -61,7 +64,7 @@ func (s *EventService) FeedbackCallbackEvent(innerEvent slackevents.EventsAPIInn
 	switch eventData := innerEvent.Data.(type) {
 	case *slackevents.UserProfileChangedEvent:
 		if eventsApiType == UserStatusChanged {
-			s.feedbackUserChangedEvent(eventData)
+			return s.feedbackUserChangedEvent(eventData)
 		}
 	}
 	return nil
@@ -78,16 +81,13 @@ func (s *EventService) feedbackUserChangedEvent(eventData *slackevents.UserProfi
 		message = fmt.Sprintf("User `%s`'s status has changed to `%s`.", userName, userStatus)
 	}
 
-	if err := s.postFeedbackMessage(message); err != nil {
-		return err
-	}
-	return nil
+	return s.postFeedbackMessage(message)
 }
 
 func (s *EventService) postFeedbackMessage(message string) error {
 	channelId, timestamp, err := s.client.PostMessage(s.feedbackChannel, slack.MsgOptionText(message, false))
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to post slack feedback message")
+		return errors.Join(fiber.NewError(fiber.StatusInternalServerError, "Failed to post feedback message"), err)
 	}
 
 	log.Infof("[SLACK][EVENT] Post feedback message to %s at %s", channelId, timestamp)

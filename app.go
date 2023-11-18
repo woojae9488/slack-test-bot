@@ -47,7 +47,7 @@ func (s *Server) setupHandlers() {
 	// Create a /api/slack endpoint
 	slakApi := s.app.Group("/api/slack")
 	// Bind slack api handlers
-	slakApi.Post("/events", s.slackHandler.AcceptEvents)
+	slakApi.Post("/events", s.slackHandler.AcceptEvent)
 
 	// Handle not founds
 	s.app.Use(s.errorHandler.NotFound)
