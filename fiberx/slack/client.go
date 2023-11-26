@@ -1,7 +1,9 @@
 package slack
 
 import (
+	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
+	app "github.com/woojae9488/slack-test-bot"
 )
 
 var (
@@ -10,4 +12,8 @@ var (
 
 func init() {
 	slackevents.EventsAPIInnerEventMapping[UserStatusChanged] = slackevents.UserProfileChangedEvent{}
+}
+
+func NewClient(config *app.Config) *slack.Client {
+	return slack.New(config.SlackToken)
 }

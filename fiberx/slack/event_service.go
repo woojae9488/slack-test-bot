@@ -10,7 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
-	"github.com/woojae9488/slack-test-bot/config"
+	app "github.com/woojae9488/slack-test-bot"
 )
 
 type EventService struct {
@@ -19,11 +19,11 @@ type EventService struct {
 	feedbackChannel string
 }
 
-func NewEventService(client *slack.Client, config *config.SlackConfig) *EventService {
+func NewEventService(client *slack.Client, config *app.Config) *EventService {
 	return &EventService{
 		client:          client,
-		signingSecret:   config.SigningSecret,
-		feedbackChannel: config.FeedbackChannel,
+		signingSecret:   config.SlackSigningSecret,
+		feedbackChannel: config.SlackFeedbackChannel,
 	}
 }
 
