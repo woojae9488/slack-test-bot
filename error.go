@@ -34,14 +34,14 @@ type ErrWithCode struct {
 	Err  error
 }
 
-func (e ErrWithCode) Error() string {
+func (e *ErrWithCode) Error() string {
 	return e.Err.Error()
 }
 
 func NewError(code ErrCode, message string) error {
-	return ErrWithCode{Code: code, Err: errors.New(message)}
+	return &ErrWithCode{Code: code, Err: errors.New(message)}
 }
 
 func WrapError(code ErrCode, message string, cause error) error {
-	return ErrWithCode{Code: code, Err: errors.Join(errors.New(message), cause)}
+	return &ErrWithCode{Code: code, Err: errors.Join(errors.New(message), cause)}
 }
